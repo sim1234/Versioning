@@ -1,12 +1,8 @@
 from ConfigParser import ConfigParser
 from sqlalchemy import create_engine, text, MetaData
 from sqlalchemy import inspect
-from sqlalchemy import MetaData
-from sqlalchemy import create_engine, Column, Table
-from sets import Set
 
 import json
-from datetime import datetime
 
 class CreateVersion():
     def __init__(self):

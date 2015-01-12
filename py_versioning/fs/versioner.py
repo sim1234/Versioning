@@ -8,17 +8,32 @@ def safe_list_get(l, idx, default = None):
         return default
 
 class FSVersioner(object):
-    def __init__(self, database, engine):
+    def __init__(self, database, engine, versioning_file_path = '.version'):
         self.database = database
         self.engine = engine
+        self.versioning_file_path = versioning_file_path
     
     def current_version(self):
-        return self.database.get_latest_version()
+        try:
+            f = open(self.versioning_file_path, 'r')
+            name = f.read()
+            f.close()
+        except IOError:
+            name = '0.0.1'
+            self.set_version(name)
+        try:
+            return self.find_version(name)
+        except IndexError:
+            return ['None', None, '[{}, {}]']
+
     
     def actual_version(self):
         hash_, json_ = self.engine.dump_json(pretty = False)
         return ['--ACTUAL--', hash_, json_]
     
+    def latest_version(self):
+        return self.database.get_latest_version()
+        
     def version_list(self):
         current = self.current_version()
         actual = self.actual_version()
@@ -34,25 +49,41 @@ class FSVersioner(object):
         actual = self.actual_version()
         return current[1] != actual[1]
     
-    def get_version(self, ignore_modified = False):
+    def outdated(self):
+        current = self.current_version()
+        latest = self.latest_version()
+        return current[1] != latest[1]
+    
+    def get_version(self, ignore_modified = False, ignore_outdated = False):
         current = self.current_version()
         actual = self.actual_version()
+        latest = self.latest_version()
+        version = current[0]
         if (not ignore_modified) and current[1] != actual[1]:
-            return "%s+" % current[0]
-        return current[0]
+            version = '%s+' % version
+        if (not ignore_outdated) and current[1] != latest[1]:
+            version = '%s^' % version
+        return version
         
     def new_version(self, name, hash_, json_):
         self.database.new_version(name, hash_, json_)
         
     def delete_version(self, name):
+        r = self.find_version(name)
         self.database.delete_version(name)
-    
+        return r
+        
     def find_version(self, name = None):
         if name is None:
             return self.current_version()
         if name == '--ACTUAL--':
             return self.actual_version()
         return self.database.get_version(name)
+    
+    def set_version(self, name):
+        f = open(self.versioning_file_path, 'w')
+        f.write(name)
+        f.close()
     
     def bump_version(self, level = 0):
         current = self.current_version()
@@ -73,6 +104,7 @@ class FSVersioner(object):
         name = '%s.%s.%s' % (v2, v1, v0)
         
         self.new_version(name, actual[1], actual[2])
+        self.set_version(name)
         return [name, actual[1], actual[2]]
         
         
@@ -93,20 +125,25 @@ class FSVersionCommander(FSVersioner):
                 print '===', f.encode('ascii','replace')
     
     def execute_command(self, parts):
-        HELP = "Available commands are: current; actual; changed; list; del <name>; bump <level=0>; diff [<name1=None> [<name2=--ACTUAL-->]]."
+        HELP = "Available commands are: current; actual; latest; changed; outdated; list; del <name>; set <name>; bump <level=0>; diff [<name1=None> [<name2=--ACTUAL-->]]."
+        print "Actual version:", self.get_version()
         if parts == []:
-            print "Actual version:", self.get_version()
             parts = ['diff']
         
         cmm = parts[0]
         if cmm == 'current':
             name, hash_, json_ = self.current_version()
-            print name, hash_
+            print '%s [%s]' % (name, hash_)
         elif cmm == 'actual':
             name, hash_, json_ = self.actual_version()
-            print name, hash_
+            print '%s [%s]' % (name, hash_)
+        elif cmm == 'latest':
+            name, hash_, json_ = self.latest_version()
+            print '%s [%s]' % (name, hash_)
         elif cmm == 'changed':
-            print self.changed()
+            print "Changed:", self.changed()
+        elif cmm == 'outdated':
+            print "Outdated:", self.outdated()
         elif cmm == 'list':
             for name, hash_, json_ in self.version_list():
                 print '%s [%s]' % (name.ljust(20, ' '), hash_)
@@ -121,8 +158,13 @@ class FSVersionCommander(FSVersioner):
 #                 print "Error: No changes detected!"
         elif cmm == 'del':
             name = safe_list_get(parts, 1, '')
-            name, hash_, js = self.del_version(name = name)
+            name, hash_, json_ = self.delete_version(name = name)
             print "Deleted version named '%s' : %s." % (name, hash_)
+        elif cmm == 'set':
+            name = safe_list_get(parts, 1, '')
+            name, hash_, json_ = self.find_version(name)
+            self.set_version(name)
+            print "Set version to %s [%s]" % (name, hash_)
         elif cmm == 'bump':
             try:
                 level = int(safe_list_get(parts, 1, '0'))
