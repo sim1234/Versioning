@@ -1,18 +1,19 @@
-from ConfigParser import ConfigParser
+#from ConfigParser import ConfigParser
 from sqlalchemy import create_engine, text, MetaData
 from sqlalchemy import inspect
 
 import json
 
 class CreateVersion():
-    def __init__(self):
-        self.path1 = self.get_ini("DB", "path1")
-        self.path2 = self.get_ini("DB", "path4")
+    def __init__(self, versioned_db_path, storage_db_path):
+        self.path1 = versioned_db_path #self.get_ini("DB", "path1")
+        self.path2 = storage_db_path #self.get_ini("DB", "path4")
         self.create_engine()
         last_version = self.get_latest_version()
         if last_version:
             new_list = self.test3()
             new_json = json.dumps(new_list)
+            print last_version
             old_list = eval(last_version[3])
 
             #print old_list, 'asd'
@@ -105,14 +106,14 @@ class CreateVersion():
                     return True
         return False
 
-    def get_ini(self, section, name):
-        try:
-            parser = ConfigParser()
-            parser.read('config.cfg')
-            return parser.get(section, name)
-        except Exception, e:
-            #print e
-            return False
+    #def get_ini(self, section, name):
+    #    try:
+    #        parser = ConfigParser()
+    #        parser.read('config.cfg')
+    #        return parser.get(section, name)
+    #    except Exception, e:
+    #        #print e
+    #        return False
         
     def create_engine(self):
         self.engine = create_engine(self.path1)
@@ -206,7 +207,10 @@ class CreateVersion():
         return [str(c.type) for c in datatable.columns]
 
 class CheckVersion():
-    def __init__(self):
+    def __init__(self, versioned_db_path, storage_db_path):
+        self.path1 = versioned_db_path #self.get_ini("DB", "path1")
+        self.path2 = storage_db_path #self.get_ini("DB", "path4")
+        
         self.create_engines()
         versions = self.get_versions()
         aaa = self.test3()
@@ -219,18 +223,20 @@ class CheckVersion():
                 print v[1]
                 break
 
-    def get_ini(self, section, name):
-        try:
-            parser = ConfigParser()
-            parser.read('config.cfg')
-            return parser.get(section, name)
-        except Exception, e:
-            #print e
-            return False
+    #def get_ini(self, section, name):
+    #    try:
+    #        parser = ConfigParser()
+    #        parser.read('config.cfg')
+    #        return parser.get(section, name)
+    #    except Exception, e:
+    #        #print e
+    #        return False
         
     def create_engines(self):
-        self.engine = create_engine(self.get_ini("DB", "path1"))
-        self.engine2 = create_engine(self.get_ini("DB", "path4"))
+        #self.engine = create_engine(self.get_ini("DB", "path1"))
+        #self.engine2 = create_engine(self.get_ini("DB", "path4"))
+        self.engine = create_engine(self.path1)
+        self.engine2 = create_engine(self.path2)
         
     def do_sql(self, q):
         connection = self.engine.connect()
@@ -273,6 +279,6 @@ class CheckVersion():
         # [str(c.params) for c in datatable.columns]
         return [str(c.type) for c in datatable.columns]
 
-create = CreateVersion()
+#create = CreateVersion()
 #heck = CheckVersion()
 #db = DataBase(2)
