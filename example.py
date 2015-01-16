@@ -15,10 +15,10 @@ fs_database = SQLDatabase('postgresql://postgres:postgres@localhost/versioning',
 fs_versioner = FSVersionCommander(fs_database, fs_engine, '.version')
 
 fs_get_version = fs_versioner.get_version
-fs_version = fs_get_version()
+#fs_version = fs_get_version()
 
 
-db_versioner = DBVersionCommander('postgresql://postgres:postgres@localhost/postgres2', 'postgresql://postgres:postgres@localhost/vers_control')
+db_versioner = DBVersionCommander('postgresql://postgres:postgres@localhost/vers_test1', 'postgresql://postgres:postgres@localhost/vers_control')
 
 
 if __name__ == '__main__':

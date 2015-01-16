@@ -1,4 +1,3 @@
-#from ConfigParser import ConfigParser
 from sqlalchemy import create_engine, text, MetaData
 from sqlalchemy import inspect
 
@@ -13,11 +12,8 @@ class CreateVersion():
         if last_version:
             new_list = self.test3()
             new_json = json.dumps(new_list)
-            print last_version
             old_list = eval(last_version[3])
-
-            #print old_list, 'asd'
-            if last_version[3] == new_json:
+            if last_version['json_db'] == new_json:
                 print 'No changes detected in db!'
                 print 'path: %s' % self.path1
             else:
@@ -32,12 +28,10 @@ class CreateVersion():
                 if column:
                     print 'Changes tables'
                 for c in column:
-                    #print c[0], c[1]
                     print c
                 if row:
                     print 'Changes columns'
                 for r in row:
-                    #print r[0], r[1], r[2]
                     print r
                 
                 self.insertNewVersion(new_json, new_version_str)
@@ -46,20 +40,13 @@ class CreateVersion():
         else:
             self.create_new_version()
             print 'Version 0.0 was created.'
-        #m = MetaData
-        #m.reflect(m, sbind = self.engine)
-        #self.test()
-        #self.test2()
-        #self.test3()
-        #self.test4()
+
 
     def compareVersion(self, olds, news):
         diff_tables = []
         diff_columns = []
         for new in news:
             for i, jj in new.items():
-                #try:
-                    #print new, i, jj
                     nn = self.find_in_list_with_dic(olds, i)
                     if nn:
                         for n in nn:
@@ -76,14 +63,6 @@ class CreateVersion():
                     nn = self.find_in_list_with_dic(news, i)
                     if nn:
                         pass
-                        '''
-                        for n in nn:
-                            if not n in jj:
-                                diff_columns.append(('---',unicode(i),n))
-                        for j in jj:
-                            if not j in nn:
-                                diff_columns.append(('+++',unicode(i),j))
-                        '''
                     else:
                         diff_tables.append(('+++', old))
         
@@ -106,15 +85,6 @@ class CreateVersion():
                     return True
         return False
 
-    #def get_ini(self, section, name):
-    #    try:
-    #        parser = ConfigParser()
-    #        parser.read('config.cfg')
-    #        return parser.get(section, name)
-    #    except Exception, e:
-    #        #print e
-    #        return False
-        
     def create_engine(self):
         self.engine = create_engine(self.path1)
         self.engine2 = create_engine(self.path2)
@@ -147,7 +117,6 @@ class CreateVersion():
         if not new_json:
             aaa = self.test3()
             json_db = json.dumps(aaa)
-            #print json_db
             version = '0.1'
         self.insertNewVersion(json_db, version)
         
@@ -168,9 +137,7 @@ class CreateVersion():
             
     def test2(self):
         for table in self.m.tables.values():
-            ##print table.name
             for column in table.c:
-                #print column.name
                 pass
             
     def test3(self):
@@ -178,12 +145,10 @@ class CreateVersion():
         
         table_list = []
         for table_name in inspector.get_table_names():
-            ##print('table name %s' %table_name)
             table_dic = {}
             columns = []
             
             for column in inspector.get_columns(table_name):
-                ##print("Column: %s" % column['name'])
                 columns.append(column['name'])
             det_str = table_name +'_details'
             details =  self.test4(table_name)
@@ -200,10 +165,6 @@ class CreateVersion():
         meta.bind = self.engine
         meta.reflect()
         datatable = meta.tables[name]
-        #for c in datatable.columns:
-        #    #print dir(c)
-        #    ##print c.params()
-        # [str(c.params) for c in datatable.columns]
         return [str(c.type) for c in datatable.columns]
 
 class CheckVersion():
@@ -215,26 +176,16 @@ class CheckVersion():
         versions = self.get_versions()
         aaa = self.test3()
         my_json = json.dumps(aaa)
-        #print aaa
-        #print my_json
+
         for v in versions:
             
             if v[3] == my_json:
-                print v[1]
+                ver = str(self.path1).split('/')
+                print 'Version %s:' %(str(ver[-1])),v[1]
                 break
 
-    #def get_ini(self, section, name):
-    #    try:
-    #        parser = ConfigParser()
-    #        parser.read('config.cfg')
-    #        return parser.get(section, name)
-    #    except Exception, e:
-    #        #print e
-    #        return False
         
     def create_engines(self):
-        #self.engine = create_engine(self.get_ini("DB", "path1"))
-        #self.engine2 = create_engine(self.get_ini("DB", "path4"))
         self.engine = create_engine(self.path1)
         self.engine2 = create_engine(self.path2)
         
@@ -273,10 +224,7 @@ class CheckVersion():
         meta.bind = self.engine
         meta.reflect()
         datatable = meta.tables[name]
-        #for c in datatable.columns:
-        #    #print dir(c)
-        #    ##print c.params()
-        # [str(c.params) for c in datatable.columns]
+
         return [str(c.type) for c in datatable.columns]
 
 #create = CreateVersion()
