@@ -3,14 +3,15 @@ from sqlalchemy import inspect
 
 import json
 
+
 class CreateVersion():
     def __init__(self, versioned_db_path, storage_db_path):
-        self.path1 = versioned_db_path #self.get_ini("DB", "path1")
-        self.path2 = storage_db_path #self.get_ini("DB", "path4")
+        self.path1 = versioned_db_path  # self.get_ini("DB", "path1")
+        self.path2 = storage_db_path  # self.get_ini("DB", "path4")
         self.create_engine()
         last_version = self.get_latest_version()
         if last_version:
-            new_list = self.test3()
+            new_list = self.get_table_list()
             new_json = json.dumps(new_list)
             old_list = eval(last_version[3])
             if last_version['json_db'] == new_json:
@@ -26,17 +27,16 @@ class CreateVersion():
                     new_version[1] = str(int(new_version[1]) + 1)
                 new_version_str = new_version[0] + '.' + new_version[1]
                 if column:
-                    print 'Changes tables'
+                    print 'Change tables'
                 for c in column:
                     print c
                 if row:
-                    print 'Changes columns'
+                    print 'Change columns'
                 for r in row:
                     print r
-                
-                self.insertNewVersion(new_json, new_version_str)
-                #print 'Wersja bazy danych zmienila sie i zostala dodana do DB.\n %s' % new_version_str 
-                print 'Created new db version %s' % new_version_str 
+
+                self.insert_new_version(new_json, new_version_str)
+                print 'Created new db version %s' % new_version_str
         else:
             self.create_new_version()
             print 'Version 0.0 was created.'
@@ -47,25 +47,25 @@ class CreateVersion():
         diff_columns = []
         for new in news:
             for i, jj in new.items():
-                    nn = self.find_in_list_with_dic(olds, i)
-                    if nn:
-                        for n in nn:
-                            if not n in jj:
-                                diff_columns.append(('+++',unicode(i),n))
-                        for j in jj:
-                            if not j in nn:
-                                diff_columns.append(('---',unicode(i),j))
-                    else:
-                        diff_tables.append(('---', new))
-        
+                nn = self.find_in_list_with_dic(olds, i)
+                if nn:
+                    for n in nn:
+                        if not n in jj:
+                            diff_columns.append(('+++', unicode(i), n))
+                    for j in jj:
+                        if not j in nn:
+                            diff_columns.append(('---', unicode(i), j))
+                else:
+                    diff_tables.append(('---', new))
+
         for old in olds:
             for i, jj in old.items():
-                    nn = self.find_in_list_with_dic(news, i)
-                    if nn:
-                        pass
-                    else:
-                        diff_tables.append(('+++', old))
-        
+                nn = self.find_in_list_with_dic(news, i)
+                if nn:
+                    pass
+                else:
+                    diff_tables.append(('+++', old))
+
         dt = []
         dc = []
         for t in diff_tables:
@@ -75,8 +75,8 @@ class CreateVersion():
             if not c in dt:
                 dc.append(c)
         return dt, dc
-        
-        
+
+
     def find_in_list_with_dic(self, elements_dic, element):
         for e in elements_dic:
             for i, j in e.items():
@@ -88,21 +88,21 @@ class CreateVersion():
     def create_engine(self):
         self.engine = create_engine(self.path1)
         self.engine2 = create_engine(self.path2)
-        
+
     def do_sql(self, q):
         connection = self.engine.connect()
         result = connection.execute(text(q))
         return result
-    
+
     def do_sql2(self, q):
         connection = self.engine2.connect()
         result = connection.execute(text(q))
         return result
-    
+
     def get_versions(self):
         q = "select * from control ORDER BY id"
         return self.do_sql2(q)
-    
+
     def get_latest_version(self):
         row = self.get_versions()
         latest = []
@@ -112,98 +112,86 @@ class CreateVersion():
             return latest
         else:
             return False
-    
-    def create_new_version(self, new_json = False):
+
+    def create_new_version(self, new_json=False):
         if not new_json:
-            aaa = self.test3()
+            aaa = self.get_table_list()
             json_db = json.dumps(aaa)
             version = '0.1'
-        self.insertNewVersion(json_db, version)
-        
+        self.insert_new_version(json_db, version)
 
-    def insertNewVersion(self, json_db, version):
+
+    def insert_new_version(self, json_db, version):
         q = """INSERT INTO control 
                 (version, date ,json_db ) VALUES 
-                ('%s', NOW(), '%s')""" %(version, json_db)
+                ('%s', NOW(), '%s')""" % (version, json_db)
         self.do_sql2(q)
-            
-        
 
-    def test(self):
-        q = "select * from register_app_pod"
-        row = self.do_sql(q)
-        for i in row:
-            pass
-            
-    def test2(self):
-        for table in self.m.tables.values():
-            for column in table.c:
-                pass
-            
-    def test3(self):
+
+    def get_table_list(self):
         inspector = inspect(self.engine)
-        
+
         table_list = []
         for table_name in inspector.get_table_names():
             table_dic = {}
             columns = []
-            
+
             for column in inspector.get_columns(table_name):
                 columns.append(column['name'])
-            det_str = table_name +'_details'
-            details =  self.test4(table_name)
+            det_str = table_name + '_details'
+            details = self.get_details(table_name)
 
             table_dic[det_str] = details
             table_dic[table_name] = columns
             table_list.append(table_dic)
-            
-            
+
         return table_list
-    
-    def test4(self, name):
+
+    def get_details(self, name):
         meta = MetaData()
         meta.bind = self.engine
         meta.reflect()
         datatable = meta.tables[name]
         return [str(c.type) for c in datatable.columns]
 
+
 class CheckVersion():
     def __init__(self, versioned_db_path, storage_db_path):
-        self.path1 = versioned_db_path #self.get_ini("DB", "path1")
-        self.path2 = storage_db_path #self.get_ini("DB", "path4")
-        
+        self.path1 = versioned_db_path  # self.get_ini("DB", "path1")
+        self.path2 = storage_db_path  # self.get_ini("DB", "path4")
+
         self.create_engines()
         versions = self.get_versions()
-        aaa = self.test3()
+        aaa = self.get_table_list()
         my_json = json.dumps(aaa)
 
         for v in versions:
-            
+
             if v[3] == my_json:
                 ver = str(self.path1).split('/')
-                print 'Version %s:' %(str(ver[-1])),v[1]
+                print 'Version %s:' % (str(ver[-1])), v[1]
                 break
 
-        
+
     def create_engines(self):
         self.engine = create_engine(self.path1)
         self.engine2 = create_engine(self.path2)
-        
+
     def do_sql(self, q):
         connection = self.engine.connect()
         result = connection.execute(text(q))
         return result
-    
+
     def do_sql2(self, q):
         connection = self.engine2.connect()
         result = connection.execute(text(q))
         return result
-    
+
     def get_versions(self):
         q = "select * from control ORDER BY -id"
         return self.do_sql2(q)
-    
-    def test3(self):
+
+    def get_table_list(self):
         inspector = inspect(self.engine)
         table_list = []
         for table_name in inspector.get_table_names():
@@ -212,14 +200,14 @@ class CheckVersion():
 
             for column in inspector.get_columns(table_name):
                 columns.append(column['name'])
-            det_str = table_name +'_details'
-            details =  self.test4(table_name)
+            det_str = table_name + '_details'
+            details = self.get_details(table_name)
             table_dic[det_str] = details
             table_dic[table_name] = columns
             table_list.append(table_dic)
         return table_list
-    
-    def test4(self, name):
+
+    def get_details(self, name):
         meta = MetaData()
         meta.bind = self.engine
         meta.reflect()
@@ -227,6 +215,6 @@ class CheckVersion():
 
         return [str(c.type) for c in datatable.columns]
 
-#create = CreateVersion()
+# create = CreateVersion()
 #heck = CheckVersion()
 #db = DataBase(2)
