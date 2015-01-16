@@ -53,7 +53,7 @@ docs/_build/
 # PyBuilder
 target/
 
-
+.settings/
 .project
 .pydevproject
 
