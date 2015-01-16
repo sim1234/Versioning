@@ -3,16 +3,17 @@ import sys
 from .engine import CheckVersion, CreateVersion
 
 class DBVersioner(object):
-    def __init__(self, versioned_db_path, storage_db_path):
+    def __init__(self, versioned_db_path, storage_db_path, table_name):
         self.versioned_db_path = versioned_db_path
         self.storage_db_path = storage_db_path
+        self.table_name = table_name
     
     
     def check_version(self):
-        return CheckVersion(self.versioned_db_path, self.storage_db_path)
+        return CheckVersion(self.versioned_db_path, self.storage_db_path, self.table_name)
     
     def create_version(self):
-        return CreateVersion(self.versioned_db_path, self.storage_db_path)
+        return CreateVersion(self.versioned_db_path, self.storage_db_path, self.table_name)
         
         
 

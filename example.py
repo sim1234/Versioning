@@ -2,7 +2,6 @@ import os
 
 from py_versioning.fs import FSVersionerEngine, FSVersionCommander
 from py_versioning.storage.sql_db import SQLDatabase
-#from py_versioning.storage.json_db import FileJsonDatabase
 
 from py_versioning.db import DBVersionCommander
 from py_versioning.combined import CombinedCommander
@@ -10,15 +9,15 @@ from py_versioning.combined import CombinedCommander
 PROJECT = os.path.abspath(os.path.dirname(__file__))
 
 fs_engine = FSVersionerEngine(PROJECT, True, [r'^.*py$'], [r'^.*\\storage\\.*$',])
-fs_database = SQLDatabase('postgresql://postgres:postgres@localhost/versioning', 'fs_version')
-#database = FileJsonDatabase(os.path.join(PROJECT, 'version.json'))
+fs_database = SQLDatabase('postgresql://postgres:postgres@localhost/versioning', 'py_versioning_fs_version')
 fs_versioner = FSVersionCommander(fs_database, fs_engine, '.version')
 
-fs_get_version = fs_versioner.get_version
-#fs_version = fs_get_version()
+#print fs_versioner.get_version()
 
 
-db_versioner = DBVersionCommander('postgresql://postgres:postgres@localhost/vers_test1', 'postgresql://postgres:postgres@localhost/vers_control')
+db_versioner = DBVersionCommander('postgresql://postgres:postgres@localhost/postgres2',
+                                  'postgresql://postgres:postgres@localhost/versioning', 
+                                  'py_versioning_db_version')
 
 
 if __name__ == '__main__':

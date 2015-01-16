@@ -4,7 +4,7 @@ from sqlalchemy import create_engine, text
 
 
 class SQLDatabase(Database):
-    def __init__(self, db_path, table_name = 'fs_version'):
+    def __init__(self, db_path, table_name):
         self.db_path = db_path
         self.table_name = table_name
         self.engine = create_engine(self.db_path)
@@ -36,12 +36,12 @@ class SQLDatabase(Database):
             raise KeyError()
         
     def new_version(self, name, hash_, json_):
-        sql = "INSERT INTO %s (name, hash, json, date) VALUES ('%s', '%s', '%s', NOW())" %(self.table_name, name, hash_, json_)
+        sql = "INSERT INTO %s (name, hash, json, date) VALUES ('%s', '%s', '%s', NOW())" % (self.table_name, name, hash_, json_)
         return self._do_sql(sql)
     
     def delete_version(self, name):
         try:
-            sql = "DELETE FROM %s WHERE name='%s'" %(self.table_name, name)
+            sql = "DELETE FROM %s WHERE id IN (SELECT id FROM %s WHERE name='%s' LIMIT 1)" % (self.table_name, self.table_name, name)
             return self._do_sql(sql)
         except Exception:
             raise KeyError()

@@ -5,9 +5,10 @@ import json
 
 
 class CreateVersion():
-    def __init__(self, versioned_db_path, storage_db_path):
+    def __init__(self, versioned_db_path, storage_db_path, table_name):
         self.path1 = versioned_db_path  # self.get_ini("DB", "path1")
         self.path2 = storage_db_path  # self.get_ini("DB", "path4")
+        self.table_name = table_name
         self.create_engine()
         last_version = self.get_latest_version()
         if last_version:
@@ -100,7 +101,7 @@ class CreateVersion():
         return result
 
     def get_versions(self):
-        q = "select * from control ORDER BY id"
+        q = "select * from %s ORDER BY id" % self.table_name
         return self.do_sql2(q)
 
     def get_latest_version(self):
@@ -122,9 +123,9 @@ class CreateVersion():
 
 
     def insert_new_version(self, json_db, version):
-        q = """INSERT INTO control 
+        q = """INSERT INTO %s 
                 (version, date ,json_db ) VALUES 
-                ('%s', NOW(), '%s')""" % (version, json_db)
+                ('%s', NOW(), '%s')""" % (self.table_name, version, json_db)
         self.do_sql2(q)
 
 
@@ -156,9 +157,10 @@ class CreateVersion():
 
 
 class CheckVersion():
-    def __init__(self, versioned_db_path, storage_db_path):
+    def __init__(self, versioned_db_path, storage_db_path, table_name):
         self.path1 = versioned_db_path  # self.get_ini("DB", "path1")
         self.path2 = storage_db_path  # self.get_ini("DB", "path4")
+        self.table_name = table_name
 
         self.create_engines()
         versions = self.get_versions()
@@ -188,7 +190,7 @@ class CheckVersion():
         return result
 
     def get_versions(self):
-        q = "select * from control ORDER BY -id"
+        q = "select * from %s ORDER BY -id" % self.table_name
         return self.do_sql2(q)
 
     def get_table_list(self):
