@@ -21,10 +21,7 @@ class FSVersioner(object):
         except IOError:
             name = '0.0.1'
             self.set_version(name)
-        try:
-            return self.find_version(name)
-        except IndexError:
-            return ['None', None, '[{}, {}]']
+        return self.find_version(name)
 
     
     def actual_version(self):
@@ -78,7 +75,10 @@ class FSVersioner(object):
             return self.current_version()
         if name == '--ACTUAL--':
             return self.actual_version()
-        return self.database.get_version(name)
+        try:
+            return self.database.get_version(name)
+        except KeyError:
+            return ['None', None, '[{}, {}]']
     
     def set_version(self, name):
         f = open(self.versioning_file_path, 'w')
@@ -126,20 +126,22 @@ class FSVersionCommander(FSVersioner):
     
     def execute_command(self, parts):
         HELP = "Available commands are: current; actual; latest; changed; outdated; list; del <name>; set <name>; bump <level=0>; diff [<name1=None> [<name2=--ACTUAL-->]]."
-        print "Actual version:", self.get_version()
         if parts == []:
+            print HELP
             parts = ['diff']
+        
+        print "Version:", self.get_version()
         
         cmm = parts[0]
         if cmm == 'current':
             name, hash_, json_ = self.current_version()
-            print '%s [%s]' % (name, hash_)
+            print 'Current: %s [%s]' % (name, hash_)
         elif cmm == 'actual':
             name, hash_, json_ = self.actual_version()
-            print '%s [%s]' % (name, hash_)
+            print 'Actual: %s [%s]' % (name, hash_)
         elif cmm == 'latest':
             name, hash_, json_ = self.latest_version()
-            print '%s [%s]' % (name, hash_)
+            print 'Latest: %s [%s]' % (name, hash_)
         elif cmm == 'changed':
             print "Changed:", self.changed()
         elif cmm == 'outdated':
