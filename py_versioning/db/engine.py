@@ -100,7 +100,7 @@ class CreateVersion():
         return result
 
     def get_versions(self):
-        q = "select * from control ORDER BY id"
+        q = "select id, version, date, json_db from control ORDER BY id"
         return self.do_sql2(q)
 
     def get_latest_version(self):
@@ -188,7 +188,7 @@ class CheckVersion():
         return result
 
     def get_versions(self):
-        q = "select * from control ORDER BY -id"
+        q = "select id, version, date, json_db from control ORDER BY -id"
         return self.do_sql2(q)
 
     def get_table_list(self):
