@@ -18,8 +18,7 @@ fs_get_version = fs_versioner.get_version
 #fs_version = fs_get_version()
 
 
-db_versioner = DBVersionCommander('postgresql://postgres:postgres@localhost/vers_test1', 'postgresql://postgres:postgres@localhost/vers_control')
-
+db_versioner = DBVersionCommander('postgresql://postgres:postgres@localhost/vers_test3', 'postgresql://postgres:postgres@localhost/vers_control')
 
 if __name__ == '__main__':
     c = CombinedCommander(fs = fs_versioner, db = db_versioner)
