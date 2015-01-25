@@ -15,6 +15,7 @@ fs_versioner = FSVersionCommander(fs_database, fs_engine, '.version')
 #print fs_versioner.get_version()
 
 
+
 db_versioner = DBVersionCommander('postgresql://postgres:postgres@localhost/postgres2',
                                   'postgresql://postgres:postgres@localhost/versioning', 
                                   'py_versioning_db_version')
