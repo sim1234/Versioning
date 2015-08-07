@@ -1,6 +1,6 @@
 import json
 import sys
-from ConfigParser import ConfigParser
+
 
 def safe_list_get(l, idx, default = None):
     try:
@@ -110,13 +110,16 @@ class FSVersioner(object):
         return [name, actual[1], actual[2]]
 
     def setIni(self, section, name, value):
-        if value:
-            parser = ConfigParser()
-            parser.read('config.cfg')
-            parser.set(section, name, value)
-            with open('config.cfg', 'wb') as configfile:
-                parser.write(configfile)
-        
+        try:
+            from ConfigParser import ConfigParser
+            if value:
+                parser = ConfigParser()
+                parser.read('config.cfg')
+                parser.set(section, name, value)
+                with open('config.cfg', 'wb') as configfile:
+                    parser.write(configfile)
+        except (ImportError, IOError):
+            pass
 
 class FSVersionCommander(FSVersioner):
     def print_deltas(self, v1_json, v2_json, show_no_change = False):

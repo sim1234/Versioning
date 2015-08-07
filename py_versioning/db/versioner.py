@@ -52,7 +52,7 @@ class DBVersionCommander(DBVersioner):
                 parser.set(section, name, value)
                 with open('config.cfg', 'wb') as configfile:
                     parser.write(configfile)
-        except ImportError:
+        except (ImportError, IOError):
             pass
 
 
