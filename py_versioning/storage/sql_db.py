@@ -1,7 +1,7 @@
 from _db import Database
 
 from sqlalchemy import create_engine, text
-
+import subprocess
 
 class SQLDatabase(Database):
     def __init__(self, db_path, table_name):
@@ -36,7 +36,12 @@ class SQLDatabase(Database):
             raise KeyError()
         
     def new_version(self, name, hash_, json_):
-        sql = "INSERT INTO %s (name, hash, json, date) VALUES ('%s', '%s', '%s', NOW())" % (self.table_name, name, hash_, json_)
+        try:
+            git_hash = GitHash().get_git_hash()
+        except Exception, e:
+            print e
+            git_hash = ''
+        sql = "INSERT INTO %s (name, hash, json, date, git_hash) VALUES ('%s', '%s', '%s', NOW(), '%s')" % (self.table_name, name, hash_, json_, git_hash)
         return self._do_sql(sql)
     
     def delete_version(self, name):
@@ -45,3 +50,16 @@ class SQLDatabase(Database):
             return self._do_sql(sql)
         except Exception:
             raise KeyError()
+
+
+class GitHash():
+    def call(self, cmd):
+        r = cmd + '\n'
+        try:
+            r += subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+        except subprocess.CalledProcessError as e:
+            r += e.output
+        return r
+
+    def get_git_hash(self):
+        return self.call('git rev-parse --verify HEAD')[28:]

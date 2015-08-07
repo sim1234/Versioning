@@ -13,6 +13,7 @@ class FSVersion(models.Model):
     name = models.CharField(max_length = 255, verbose_name = u"Name / Number")
     json = models.TextField(verbose_name = u"JSON data")
     hash = models.CharField(max_length = 255, verbose_name = u"Hash data")
+    git_hash = models.CharField(max_length = 255, verbose_name = u"Git hash data")
     date = models.DateField(verbose_name = u"Created")
         
     def __unicode__(self):
@@ -27,11 +28,11 @@ class DBVersion(models.Model):
         db_table = 'py_versioning_db_version'
     
     id = models.AutoField(primary_key = True)        
-    name = models.CharField(max_length=255, verbose_name = u"Name / Number")
-    json = models.TextField(verbose_name = u"JSON data")
+    version = models.CharField(max_length=255, verbose_name = u"Name / Number")
+    json_db = models.TextField(verbose_name = u"JSON data")
     date = models.DateField(verbose_name = u"Created")
         
     def __unicode__(self):
-        return self.name
+        return self.version
        
     

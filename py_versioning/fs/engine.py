@@ -18,6 +18,7 @@ def md5_file(f, block_size = 2**10):
         md5.update(data)
     return md5.hexdigest()
 
+#do wywalenia
 
 class FSVersionerEngine(object):
     def __init__(self, path, ignore_empty_folders = True, allow_regs = [r'^.*$'], ignore_regs = []):

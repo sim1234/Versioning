@@ -1,5 +1,7 @@
 import sys
 
+from ConfigParser import ConfigParser
+
 from .engine import CheckVersion, CreateVersion
 
 class DBVersioner(object):
@@ -10,10 +12,10 @@ class DBVersioner(object):
     
     
     def check_version(self):
-        return CheckVersion(self.versioned_db_path, self.storage_db_path, self.table_name)
+        return CheckVersion(self.versioned_db_path, self.storage_db_path, self.table_name).version
     
     def create_version(self):
-        return CreateVersion(self.versioned_db_path, self.storage_db_path, self.table_name)
+        return CreateVersion(self.versioned_db_path, self.storage_db_path, self.table_name).version
         
         
 
@@ -26,16 +28,29 @@ class DBVersionCommander(DBVersioner):
         
         cmm = parts[0]
         if cmm == 'check':
-            self.check_version()
+            version = self.check_version()
+            print(version)
+            self.setIni('VERSION', 'db', version)
         elif cmm == 'create':
-            self.create_version()
+            version = self.create_version()
+            print(version)
+            self.setIni('VERSION', 'db', version)
         
         else:
             print "Error: '%s' - No such command!" % cmm
             print HELP
                     
-                    
+
     def execute_from_command_line(self):
         self.execute_command(sys.argv[1:])
+
+    def setIni(self, section, name, value):
+        if value:
+            parser = ConfigParser()
+            parser.read('config.cfg')
+            parser.set(section, name, value)
+            with open('config.cfg', 'wb') as configfile:
+                parser.write(configfile)
+
 
 

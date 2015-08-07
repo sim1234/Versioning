@@ -1,5 +1,6 @@
 import json
 import sys
+from ConfigParser import ConfigParser
 
 def safe_list_get(l, idx, default = None):
     try:
@@ -102,11 +103,19 @@ class FSVersioner(object):
         else:
             v0 += 1
         name = '%s.%s.%s' % (v2, v1, v0)
-        
+
+        self.setIni('VERSION', 'fs', name)
         self.new_version(name, actual[1], actual[2])
         self.set_version(name)
         return [name, actual[1], actual[2]]
-        
+
+    def setIni(self, section, name, value):
+        if value:
+            parser = ConfigParser()
+            parser.read('config.cfg')
+            parser.set(section, name, value)
+            with open('config.cfg', 'wb') as configfile:
+                parser.write(configfile)
         
 
 class FSVersionCommander(FSVersioner):
@@ -129,10 +138,15 @@ class FSVersionCommander(FSVersioner):
         if parts == []:
             print HELP
             parts = ['diff']
-        
-        print "Version:", self.get_version()
+        current_version = self.get_version()
+
+        print "Version:", current_version
+        self.setIni('VERSION', 'fs', current_version)
+
+
         
         cmm = parts[0]
+        
         if cmm == 'current':
             name, hash_, json_ = self.current_version()
             print 'Current: %s [%s]' % (name, hash_)
@@ -187,6 +201,13 @@ class FSVersionCommander(FSVersioner):
             print "Comparing '%s' to '%s':" % (v1[0], v2[0])
             self.print_deltas(v1[2], v2[2], '-v' in parts)
         
+        if cmm == 'check':
+            if current_version[-1] == '+':
+                name, hash_, json_ = self.bump_version(0)
+                print "Bumped version to %s [%s]" % (name, hash_)
+            else:
+                print "Version OK."
+                
         else:
             print "Error: '%s' - No such command!" % cmm
             print HELP

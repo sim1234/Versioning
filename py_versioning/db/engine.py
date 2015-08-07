@@ -9,6 +9,7 @@ class CreateVersion():
         self.path1 = versioned_db_path  # self.get_ini("DB", "path1")
         self.path2 = storage_db_path  # self.get_ini("DB", "path4")
         self.table_name = table_name
+        self.version = None
         self.create_engine()
         last_version = self.get_latest_version()
         if last_version:
@@ -38,9 +39,11 @@ class CreateVersion():
 
                 self.insert_new_version(new_json, new_version_str)
                 print 'Created new db version %s' % new_version_str
+                self.version = new_version_str
         else:
             self.create_new_version()
             print 'Version 0.0 was created.'
+            self.version = '0.0'
 
 
     def compareVersion(self, olds, news):
@@ -101,7 +104,7 @@ class CreateVersion():
         return result
 
     def get_versions(self):
-        q = "select id, version, date, json_db from control ORDER BY id"
+        q = "select id, version, date, json_db from py_versioning_db_version ORDER BY id"
 
         return self.do_sql2(q)
 
@@ -123,9 +126,12 @@ class CreateVersion():
         self.insert_new_version(json_db, version)
 
 
+
+
+
     def insert_new_version(self, json_db, version):
-        q = """INSERT INTO %s 
-                (version, date ,json_db ) VALUES 
+        q = """INSERT INTO %s
+                (version, date ,json_db ) VALUES
                 ('%s', NOW(), '%s')""" % (self.table_name, version, json_db)
         self.do_sql2(q)
 
@@ -167,14 +173,34 @@ class CheckVersion():
         versions = self.get_versions()
         aaa = self.get_table_list()
         my_json = json.dumps(aaa)
+        self.version = None
+        for v in versions:
+
+            if v[3] == my_json:
+                ver = str(self.path1).split('/')
+                print 'Version %s:' % (str(ver[-1])), v[1]
+
+                self.version = v[1]
+                break
+
+    def start(self, versioned_db_path, storage_db_path, table_name):
+        self.path1 = versioned_db_path  # self.get_ini("DB", "path1")
+        self.path2 = storage_db_path  # self.get_ini("DB", "path4")
+        self.table_name = table_name
+
+        self.create_engines()
+        versions = self.get_versions()
+        aaa = self.get_table_list()
+        my_json = json.dumps(aaa)
 
         for v in versions:
 
             if v[3] == my_json:
                 ver = str(self.path1).split('/')
                 print 'Version %s:' % (str(ver[-1])), v[1]
-                break
 
+                return v[1]
+                break
 
     def create_engines(self):
         self.engine = create_engine(self.path1)
@@ -192,7 +218,7 @@ class CheckVersion():
 
     def get_versions(self):
 
-        q = "select id, version, date, json_db from control ORDER BY -id"
+        q = "select id, version, date, json_db from py_versioning_db_version ORDER BY -id"
 
         return self.do_sql2(q)
 
