@@ -1,6 +1,5 @@
 import sys
 
-from ConfigParser import ConfigParser
 
 from .engine import CheckVersion, CreateVersion
 
@@ -45,12 +44,16 @@ class DBVersionCommander(DBVersioner):
         self.execute_command(sys.argv[1:])
 
     def setIni(self, section, name, value):
-        if value:
-            parser = ConfigParser()
-            parser.read('config.cfg')
-            parser.set(section, name, value)
-            with open('config.cfg', 'wb') as configfile:
-                parser.write(configfile)
+        try:
+            from ConfigParser import ConfigParser
+            if value:
+                parser = ConfigParser()
+                parser.read('config.cfg')
+                parser.set(section, name, value)
+                with open('config.cfg', 'wb') as configfile:
+                    parser.write(configfile)
+        except ImportError:
+            pass
 
 
 
