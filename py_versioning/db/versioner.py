@@ -26,12 +26,12 @@ class DBVersioner(object):
     
     def check_version(self):
         v = CheckVersion(self.versioned_db_path, self.storage_db_path, self.table_name)
-        self.set_version(v.version)
+        self.set_version(str(v.version))
         return v.version
     
     def create_version(self):
         v = CreateVersion(self.versioned_db_path, self.storage_db_path, self.table_name)
-        self.set_version(v.version)
+        self.set_version(str(v.version))
         return v.version
         
         

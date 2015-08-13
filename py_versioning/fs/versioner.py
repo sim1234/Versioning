@@ -14,6 +14,15 @@ class FSVersioner(object):
         self.engine = engine
         self.versioning_file_path = versioning_file_path
     
+    def _current_version(self):
+        try:
+            f = open(self.versioning_file_path, 'r')
+            name = f.read()
+            f.close()
+        except IOError:
+            name = '0.0.0'
+        return name
+    
     def current_version(self):
         try:
             f = open(self.versioning_file_path, 'r')

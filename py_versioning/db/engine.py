@@ -104,8 +104,7 @@ class CreateVersion():
         return result
 
     def get_versions(self):
-        q = "select id, version, date, json_db from py_versioning_db_version ORDER BY id"
-
+        q = "select id, version, date, json_db from %s ORDER BY id" % self.table_name
         return self.do_sql2(q)
 
     def get_latest_version(self):
@@ -217,9 +216,7 @@ class CheckVersion():
         return result
 
     def get_versions(self):
-
-        q = "select id, version, date, json_db from py_versioning_db_version ORDER BY -id"
-
+        q = "select id, version, date, json_db from %s ORDER BY -id" % self.table_name
         return self.do_sql2(q)
 
     def get_table_list(self):
