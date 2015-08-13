@@ -118,7 +118,7 @@ class FSVersioner(object):
                 parser.set(section, name, value)
                 with open('config.cfg', 'wb') as configfile:
                     parser.write(configfile)
-        except (ImportError, IOError):
+        except (Exception):
             pass
 
 class FSVersionCommander(FSVersioner):
@@ -204,7 +204,7 @@ class FSVersionCommander(FSVersioner):
             print "Comparing '%s' to '%s':" % (v1[0], v2[0])
             self.print_deltas(v1[2], v2[2], '-v' in parts)
         
-        if cmm == 'check':
+        elif cmm == 'check':
             if current_version[-1] == '+':
                 name, hash_, json_ = self.bump_version(0)
                 print "Bumped version to %s [%s]" % (name, hash_)

@@ -10,7 +10,7 @@ PROJECT = os.path.abspath(os.path.dirname(__file__))
 
 fs_engine = FSVersionerEngine(PROJECT, True, [r'^.*py$'], [r'^.*\\storage\\.*$',])
 fs_database = SQLDatabase('postgresql://postgres:postgres@localhost/versioning', 'py_versioning_fs_version')
-fs_versioner = FSVersionCommander(fs_database, fs_engine, '.version')
+fs_versioner = FSVersionCommander(fs_database, fs_engine, os.path.join(PROJECT, '.version'))
 
 #print fs_versioner.get_version()
 
@@ -18,7 +18,8 @@ fs_versioner = FSVersionCommander(fs_database, fs_engine, '.version')
 
 db_versioner = DBVersionCommander('postgresql://postgres:postgres@localhost/postgres2',
                                   'postgresql://postgres:postgres@localhost/versioning', 
-                                  'py_versioning_db_version')
+                                  'py_versioning_db_version',
+                                  os.path.join(PROJECT, '.db_version'))
 
 
 if __name__ == '__main__':

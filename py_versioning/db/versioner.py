@@ -4,17 +4,35 @@ import sys
 from .engine import CheckVersion, CreateVersion
 
 class DBVersioner(object):
-    def __init__(self, versioned_db_path, storage_db_path, table_name):
+    def __init__(self, versioned_db_path, storage_db_path, table_name, versioning_file_path = ".db_version"):
         self.versioned_db_path = versioned_db_path
         self.storage_db_path = storage_db_path
         self.table_name = table_name
+        self.versioning_file_path = versioning_file_path
     
+    def _current_version(self):
+        try:
+            f = open(self.versioning_file_path, 'r')
+            name = f.read()
+            f.close()
+        except IOError:
+            name = '0.0.0'
+        return name
+    
+    def set_version(self, name):
+        f = open(self.versioning_file_path, 'w')
+        f.write(name)
+        f.close()
     
     def check_version(self):
-        return CheckVersion(self.versioned_db_path, self.storage_db_path, self.table_name).version
+        v = CheckVersion(self.versioned_db_path, self.storage_db_path, self.table_name)
+        self.set_version(v.version)
+        return v.version
     
     def create_version(self):
-        return CreateVersion(self.versioned_db_path, self.storage_db_path, self.table_name).version
+        v = CreateVersion(self.versioned_db_path, self.storage_db_path, self.table_name)
+        self.set_version(v.version)
+        return v.version
         
         
 
@@ -52,7 +70,7 @@ class DBVersionCommander(DBVersioner):
                 parser.set(section, name, value)
                 with open('config.cfg', 'wb') as configfile:
                     parser.write(configfile)
-        except (ImportError, IOError):
+        except (Exception):
             pass
 
 
