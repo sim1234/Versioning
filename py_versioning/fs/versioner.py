@@ -214,7 +214,13 @@ class FSVersionCommander(FSVersioner):
             self.print_deltas(v1[2], v2[2], '-v' in parts)
         
         elif cmm == 'check':
-            if current_version[-1] == '+':
+            if '+' in current_version:
+                _, hash_c, _ = self.actual_version()
+                for name, hash_, _ in self.database.get_all_versions():
+                    if hash_ == hash_c:
+                        self.set_version(name)
+                        print "Set version to %s [%s]" % (name, hash_)
+                        return
                 name, hash_, json_ = self.bump_version(0)
                 print "Bumped version to %s [%s]" % (name, hash_)
             else:
