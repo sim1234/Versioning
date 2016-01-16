@@ -74,6 +74,3 @@ class DBVersionCommander(DBVersioner):
                     parser.write(configfile)
         except (Exception):
             pass
-
-
-
